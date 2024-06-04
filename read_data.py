@@ -3,6 +3,25 @@ import numpy as np
 import os
 from multiprocessing import Pool, cpu_count
 
+def downsample_data(data_arrays, original_sampling_rate, target_sampling_rate):
+    # Calculate the downsampling factor
+    downsampling_factor = int(original_sampling_rate / target_sampling_rate)
+
+    # Reshape data to have each row represent one channel
+    num_channels, num_samples, num_features = data_arrays.shape
+    data_arrays_reshaped = data_arrays.reshape(num_channels, num_samples * num_features)
+
+    # Downsample each channel
+    downsampled_data = []
+    for channel_data in data_arrays_reshaped:
+        downsampled_channel = []
+        for i in range(0, len(channel_data), downsampling_factor):
+            # Take the first sample in each downsampling interval
+            downsampled_channel.append(channel_data[i])
+        downsampled_data.append(downsampled_channel)
+
+    return np.array(downsampled_data).reshape(num_channels, -1, num_features)
+
 def process_csv_file(file_path, n_rows=250000, n_cols=8):
     # Read the CSV file in chunks
     chunks = pd.read_csv(file_path, chunksize=n_rows)
